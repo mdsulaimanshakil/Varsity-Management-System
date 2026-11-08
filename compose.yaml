@@ -1,0 +1,36 @@
+services:
+  # PostgreSQL database
+  db:
+    image: postgres:16-alpine
+    container_name: ums-db
+    environment:
+      POSTGRES_DB: ums
+      POSTGRES_USER: ums
+      POSTGRES_PASSWORD: ums_secret
+    ports:
+      - "5433:5432"   # lets the app connect from IntelliJ (localhost:5433)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ums -d ums"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Spring Boot application
+  app:
+    build: .
+    container_name: ums-app
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy   # wait until PostgreSQL is ready
+    environment:
+      # Inside Docker, the database host is the service name "db"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/ums
+      SPRING_DATASOURCE_USERNAME: ums
+      SPRING_DATASOURCE_PASSWORD: ums_secret
+
+volumes:
+  pgdata:
