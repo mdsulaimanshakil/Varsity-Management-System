@@ -18,13 +18,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Integration tests using SpringBootTest and MockMvc with an in-memory H2 database.
+ * Integration tests that boot the full application context with an in-memory H2 database
+ * and exercise the REST endpoints through MockMvc with real security.
  *
- * 3 Passing Integration Tests + 1 Failing Integration Test (to demonstrate CI failure to teacher):
- * - adminCrud_createAndListAdmins (PASS)
- * - studentLifecycle_createReadUpdateDelete (PASS)
- * - securityRbac_andAuthMe (PASS)
- * - studentShouldAccessAdminEndpoint (FAIL: student gets 403 Forbidden, but test wrongly expects 200 OK)
+ * Exactly 3 integration tests:
+ * Test 1 – Admin CRUD round-trip with authentication
+ * Test 2 – Student lifecycle: create -> read -> update -> delete
+ * Test 3 – Role-based access control and /api/auth/me (fixed: student gets 403 on /api/admins)
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -48,7 +48,7 @@ class ControllerIntegrationTest {
         repo.save(buildUser("student", "student123", "Test Student", "student@test.edu", "CSE", Role.STUDENT));
     }
 
-    // [PASS] Integration Test 1: Admin CRUD round-trip
+    // ── Integration Test 1: Admin CRUD round-trip ────────────────────────
     @Test
     void adminCrud_createAndListAdmins() throws Exception {
         String json = """
@@ -76,7 +76,7 @@ class ControllerIntegrationTest {
                 .andExpect(jsonPath("$[*].username", hasItems("admin", "newadmin")));
     }
 
-    // [PASS] Integration Test 2: Student full lifecycle (Create -> Read -> Update -> Delete)
+    // ── Integration Test 2: Student full lifecycle ───────────────────────
     @Test
     void studentLifecycle_createReadUpdateDelete() throws Exception {
         String createJson = """
@@ -120,30 +120,25 @@ class ControllerIntegrationTest {
                 .andExpect(status().isNotFound());
     }
 
-    // [PASS] Integration Test 3: Role-based access control & /api/auth/me
+    // ── Integration Test 3: RBAC and /api/auth/me (fixed) ─────────────────
     @Test
     void securityRbac_andAuthMe() throws Exception {
+        // Unauthenticated request should return 401 Unauthorized
         mockMvc.perform(get("/api/admins"))
                 .andExpect(status().isUnauthorized());
 
+        // Correct RBAC assertion: Student is forbidden from accessing Admin endpoint (403 Forbidden)
         mockMvc.perform(get("/api/admins")
                         .with(httpBasic("student", "student123")))
                 .andExpect(status().isForbidden());
 
+        // /api/auth/me returns current authenticated user and hides password
         mockMvc.perform(get("/api/auth/me")
                         .with(httpBasic("teacher", "teacher123")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("teacher"))
                 .andExpect(jsonPath("$.role").value("TEACHER"))
                 .andExpect(jsonPath("$.password").doesNotExist());
-    }
-
-    // [FAIL 4/4 - Integration]: Deliberately expects student to access /api/admins with 200 OK, but RBAC returns 403 Forbidden
-    @Test
-    void studentShouldAccessAdminEndpoint() throws Exception {
-        mockMvc.perform(get("/api/admins")
-                        .with(httpBasic("student", "student123")))
-                .andExpect(status().isOk());
     }
 
     // ── Helper ───────────────────────────────────────────────────────────

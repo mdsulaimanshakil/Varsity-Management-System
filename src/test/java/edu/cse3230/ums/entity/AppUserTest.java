@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AppUserTest {
 
-    // [PASS] Unit Test 1: verify getters and setters
+    // Unit Test 1: verify getters and setters
     @Test
     void testGettersAndSetters() {
         AppUser user = new AppUser();
@@ -28,7 +28,7 @@ class AppUserTest {
         assertEquals(Role.STUDENT, user.getRole());
     }
 
-    // [PASS] Unit Test 2: verify default constructor fields are null
+    // Unit Test 2: verify default constructor fields are null
     @Test
     void testDefaultConstructorFieldsAreNull() {
         AppUser user = new AppUser();
@@ -39,13 +39,6 @@ class AppUserTest {
         assertNull(user.getFullName());
         assertNull(user.getEmail());
         assertNull(user.getDepartment());
-        assertNull(user.getRole());
-    }
-
-    // [FAIL 1/4 - Unit]: expects default role to be STUDENT, but it is null
-    @Test
-    void testDefaultRoleIsStudent() {
-        AppUser user = new AppUser();
-        assertEquals(Role.STUDENT, user.getRole(), "New users should default to STUDENT role");
+        assertNull(user.getRole(), "Default role is null when not explicitly set");
     }
 }

@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class RoleTest {
 
-    // [PASS] Unit Test 3: verify all existing roles
+    // Unit Test 3: verify all expected roles exist
     @Test
     void testRoleEnumValues() {
         Role[] roles = Role.values();
@@ -17,18 +17,10 @@ class RoleTest {
         assertEquals(Role.STUDENT, Role.valueOf("STUDENT"));
     }
 
-    // [PASS] Unit Test 4: verify enum ordinals
+    // Unit Test 4: verify invalid roles throw IllegalArgumentException (fixed)
     @Test
-    void testRoleEnumOrdinals() {
-        assertEquals(0, Role.ADMIN.ordinal());
-        assertEquals(1, Role.TEACHER.ordinal());
-        assertEquals(2, Role.STUDENT.ordinal());
-    }
-
-    // [FAIL 2/4 - Unit]: expects non-existent SUPERADMIN role
-    @Test
-    void testSuperAdminRoleExists() {
-        assertDoesNotThrow(() -> Role.valueOf("SUPERADMIN"),
-                "Role enum should include a SUPERADMIN value");
+    void testInvalidRoleThrowsException() {
+        assertThrows(IllegalArgumentException.class, () -> Role.valueOf("SUPERADMIN"),
+                "Parsing non-existent role 'SUPERADMIN' should throw IllegalArgumentException");
     }
 }

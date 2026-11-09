@@ -42,28 +42,26 @@ class UserRepositoryTest {
         repo.save(student);
     }
 
-    // [PASS] Unit Test 5: findByUsername for existing and non-existing
+    // Unit Test 5: verify findByUsername for existing and non-existing user
     @Test
     void findByUsername_existingAndNonExisting() {
         assertTrue(repo.findByUsername("admin_test").isPresent());
         assertTrue(repo.findByUsername("nobody").isEmpty());
     }
 
-    // [PASS] Unit Test 6: findByRole and findByIdAndRole
+    // Unit Test 6: verify existsByUsername and findByRole (fixed)
     @Test
-    void findByRole_returnsCorrectUsers() {
+    void existsByUsername_andFindByRole() {
+        // Correct assertion: existsByUsername returns true for existing user, false for nonexistent
+        assertTrue(repo.existsByUsername("admin_test"), "existsByUsername should return true for existing user");
+        assertFalse(repo.existsByUsername("nonexistent"), "existsByUsername should return false for nonexistent user");
+
+        // Role filtering
         List<AppUser> admins = repo.findByRole(Role.ADMIN);
         assertEquals(1, admins.size());
         assertEquals("admin_test", admins.get(0).getUsername());
 
         assertTrue(repo.findByIdAndRole(savedAdmin.getId(), Role.ADMIN).isPresent());
         assertTrue(repo.findByIdAndRole(savedAdmin.getId(), Role.STUDENT).isEmpty());
-    }
-
-    // [FAIL 3/4 - Unit]: asserts false for an existing username
-    @Test
-    void existsByUsername_shouldReturnFalseForExistingUser() {
-        assertFalse(repo.existsByUsername("admin_test"),
-                "existsByUsername should return false for existing usernames");
     }
 }
